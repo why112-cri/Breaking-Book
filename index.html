@@ -13,6 +13,36 @@
 @media(max-width:1000px){nav{gap:12px}.book-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cover-stage{padding:30px}.order-layout{grid-template-columns:1fr}.nav{flex-wrap:wrap;padding:18px 0}nav{flex-wrap:wrap}.order-view h1{font-size:34px}}
 @media(max-width:600px){.book-grid{grid-template-columns:1fr}.cover-stage{min-height:280px}.book-cover{width:165px}.field-grid{grid-template-columns:1fr}.panel{padding:20px}.cart-row{grid-template-columns:1fr}.line-total{text-align:left}.book-body{padding:22px}.nav{gap:16px}.cart-link{font-size:14px}.order-view{padding-top:30px}}
 @media print{header,footer,.no-print,#storefront,.toast{display:none!important}.order-view{padding:0}.panel{border:0}body{background:white}}
+
+/* Quiet motion: short, one-shot transitions; no looping effects. */
+:root{--ease-soft:cubic-bezier(.22,1,.36,1)}
+.btn,.filter,.choice,.cart-link{transition:background-color .2s ease,color .2s ease,box-shadow .25s ease,transform .25s var(--ease-soft)}
+.book-card{transition:transform .35s var(--ease-soft),box-shadow .35s ease}
+.book-cover{transform-origin:50% 85%;transition:transform .55s var(--ease-soft),box-shadow .55s ease}
+.cover-stage{perspective:900px}.cart-count{display:inline-block}.receipt-check{display:block;width:48px;height:48px;margin-bottom:18px;color:#356a48}
+.receipt-check circle{fill:#e9f3ea;stroke:none}.receipt-check path{fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+@media(prefers-reduced-motion:no-preference){
+.hero .eyebrow{animation:bb-arrive .65s var(--ease-soft) both}
+.hero h1{animation:bb-arrive .8s .07s var(--ease-soft) both}
+.hero-copy{animation:bb-arrive .8s .14s var(--ease-soft) both}
+.hero .actions{animation:bb-arrive .8s .21s var(--ease-soft) both}
+.manifesto{animation:bb-arrive .9s .14s var(--ease-soft) both}
+.toast:not([hidden]){animation:bb-toast .3s var(--ease-soft) both}
+#receipt:not([hidden]){animation:bb-arrive .5s var(--ease-soft) both}
+.receipt-check path{stroke-dasharray:30;stroke-dashoffset:0;animation:bb-check .55s .1s var(--ease-soft) both}
+@media(hover:hover) and (pointer:fine){
+.book-card:hover{transform:translateY(-3px);box-shadow:0 14px 32px #142d4e15}
+.book-card:hover .book-cover{transform:rotateY(-7deg) rotateZ(-1deg) translateY(-3px);box-shadow:12px 15px 22px #1022322b}
+.btn:hover,.cart-link:hover{transform:translateY(-1px)}
+}
+.btn:active,.filter:active,.choice:active{transform:scale(.98)}
+}
+@keyframes bb-arrive{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}
+@keyframes bb-toast{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
+@keyframes bb-check{from{stroke-dashoffset:30}to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.book-card:hover{transform:none}.book-card:hover .book-cover{transform:none}}
+@media print{*,*::before,*::after{animation:none!important;transition:none!important;opacity:1!important;translate:none!important}}
+
 </style>
 </head>
 <body>
@@ -43,14 +73,36 @@ function saveCart(){try{localStorage.setItem('breaking-book-cart-v1',JSON.string
 function renderBooks(filter='all'){document.getElementById('book-grid').innerHTML=books.filter(b=>filter==='all'||b.category===filter).map(b=>`<article class="book-card"><div class="cover-stage"><div class="book-cover" style="--cover:${b.color};--cover-ink:${b.accent}" role="img" aria-label="ปกออกแบบสำหรับหนังสือสาธิต ${b.title}"><small>BREAKING BOOK<br>DEMO COLLECTION</small><strong class="cover-title">${b.en}</strong><span class="cover-thai">${b.title}</span></div></div><div class="book-body"><span class="book-tag">${b.category} / ${b.tag}</span><h3>${b.title}</h3><p class="book-author">ผู้เขียนสมมติ: ${b.author}</p><p class="book-desc">${b.desc}</p><div class="book-meta">เหมาะกับ: ${b.audience}<br>${b.pages} หน้า · ภาษาไทย · ปกอ่อน · สภาพใหม่ (สาธิต)</div><div class="book-bottom"><span class="price">${money(b.price)}</span><button type="button" class="btn orange add-book" data-add="${b.id}" aria-label="เพิ่ม ${b.title} ลงตะกร้า">เพิ่มลงตะกร้า +</button></div></div></article>`).join('')}
 function totals(){const count=Object.values(cart).reduce((a,b)=>a+b,0);const subtotal=books.reduce((sum,b)=>sum+b.price*(cart[b.id]||0),0);const shipping=count&&subtotal<600&&document.getElementById('delivery').value==='shipping'?40:0;return{count,subtotal,shipping,total:subtotal+shipping}}
 function renderCart(){const rows=books.filter(b=>cart[b.id]);document.getElementById('cart-items').innerHTML=rows.length?rows.map(b=>`<article class="cart-row"><div><h3>${b.title}</h3><p>${money(b.price)} / เล่ม</p><div class="quantity"><button type="button" data-step="-1" data-id="${b.id}" aria-label="ลดจำนวน ${b.title}">−</button><span aria-label="จำนวน">${cart[b.id]}</span><button type="button" data-step="1" data-id="${b.id}" aria-label="เพิ่มจำนวน ${b.title}" ${cart[b.id]>=99?'disabled':''}>+</button><button type="button" class="remove" data-remove="${b.id}">นำออก</button></div></div><div class="line-total">${money(b.price*cart[b.id])}</div></article>`).join(''):'<div class="empty"><h2>ยังไม่มีหนังสือในตะกร้า</h2><p>เลือกเล่มที่สนใจ แล้วกลับมาสรุปคำสั่งซื้อ</p><a href="#catalog" class="btn orange">เลือกหนังสือ ↗</a></div>';const t=totals();document.getElementById('summary-count').textContent=t.count+' เล่ม';document.getElementById('subtotal').textContent=money(t.subtotal);document.getElementById('shipping').textContent=money(t.shipping);document.getElementById('grand-total').textContent=money(t.total);document.getElementById('place-order').disabled=!t.count;saveCart()}
-document.getElementById('book-grid').addEventListener('click',e=>{const button=e.target.closest('[data-add]');if(!button)return;const id=button.dataset.add;if((cart[id]||0)>=99){notify('เพิ่มได้สูงสุด 99 เล่มต่อรายการ');return}cart[id]=(cart[id]||0)+1;saveCart();notify('เพิ่มหนังสือลงตะกร้าแล้ว')});
+document.getElementById('book-grid').addEventListener('click',e=>{const button=e.target.closest('[data-add]');if(!button)return;const id=button.dataset.add;if((cart[id]||0)>=99){notify('เพิ่มได้สูงสุด 99 เล่มต่อรายการ');return}cart[id]=(cart[id]||0)+1;saveCart();notify('เพิ่มหนังสือลงตะกร้าแล้ว');pulseCart(button)});
 document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderBooks(button.dataset.filter)}));
 document.getElementById('cart-items').addEventListener('click',e=>{const button=e.target.closest('button');if(!button)return;if(button.dataset.remove)delete cart[button.dataset.remove];else if(button.dataset.step){const id=button.dataset.id;cart[id]=Math.min(99,(cart[id]||0)+Number(button.dataset.step));if(cart[id]<=0)delete cart[id]}renderCart()});
 document.getElementById('delivery').addEventListener('change',()=>{const shipping=document.getElementById('delivery').value==='shipping';document.getElementById('address-field').hidden=!shipping;document.getElementById('address').required=shipping;renderCart()});
 function route(){const order=location.hash==='#order';document.getElementById('storefront').hidden=order;document.getElementById('order-view').hidden=!order;if(order){document.getElementById('checkout-content').hidden=false;document.getElementById('receipt').hidden=true;document.getElementById('order-heading').textContent='คำสั่งซื้อของคุณ';renderCart();window.scrollTo(0,0);document.getElementById('order-heading').focus({preventScroll:true})}else if(location.hash){requestAnimationFrame(()=>document.getElementById(location.hash.slice(1))?.scrollIntoView())}}
 window.addEventListener('hashchange',route);
-document.getElementById('checkout-form').addEventListener('submit',e=>{e.preventDefault();if(!totals().count)return;const form=e.currentTarget;if(!form.reportValidity())return;const data=new FormData(form);const t=totals();const orderId='DEMO-'+Date.now().toString(36).toUpperCase();const receipt=document.getElementById('receipt');receipt.innerHTML=`<span class="receipt-status">สร้างใบสรุปสาธิตแล้ว</span><h2 class="success-title">ขอบคุณที่ลองเลือกอ่านกับเรา</h2><p>รหัสอ้างอิง: <strong>${orderId}</strong><br>ยังไม่ได้ส่งคำสั่งซื้อให้ร้าน และไม่มีการเรียกเก็บเงิน</p><ul class="receipt-list">${books.filter(b=>cart[b.id]).map(b=>`<li>${b.title} × ${cart[b.id]} — ${money(b.price*cart[b.id])}</li>`).join('')}</ul><p>ยอดสินค้า ${money(t.subtotal)} · ค่าจัดส่ง ${money(t.shipping)}<br><strong>ยอดรวมสาธิต ${money(t.total)}</strong></p><p>ผู้รับ: ${escapeText(data.get('customer'))}<br>โทรศัพท์: ${escapeText(data.get('phone'))}<br>วิธีรับ: ${data.get('delivery')==='shipping'?'จัดส่ง (สาธิต)':'รับที่ร้าน (ยังไม่ระบุที่ตั้ง)'}</p>${data.get('delivery')==='shipping'?`<p>ที่อยู่: ${escapeText(data.get('address'))}</p>`:''}${data.get('note')?`<p>หมายเหตุ: ${escapeText(data.get('note'))}</p>`:''}<p class="summary-note">ใบสรุปนี้ไม่ใช่หลักฐานการชำระเงินและจะหายเมื่อรีเฟรชหน้า สามารถพิมพ์หรือบันทึกเป็น PDF ได้</p><div class="actions no-print"><button class="btn orange" type="button" id="print-receipt">พิมพ์ / บันทึก PDF</button><a href="#catalog">กลับไปหน้าร้าน</a></div>`;document.getElementById('checkout-content').hidden=true;receipt.hidden=false;document.getElementById('order-heading').textContent='สรุปคำสั่งซื้อสาธิต';document.getElementById('print-receipt').addEventListener('click',()=>window.print());cart={};saveCart();form.reset();document.getElementById('address-field').hidden=false;document.getElementById('address').required=true;window.scrollTo(0,0);document.getElementById('order-heading').focus({preventScroll:true})});
+document.getElementById('checkout-form').addEventListener('submit',e=>{e.preventDefault();if(!totals().count)return;const form=e.currentTarget;if(!form.reportValidity())return;const data=new FormData(form);const t=totals();const orderId='DEMO-'+Date.now().toString(36).toUpperCase();const receipt=document.getElementById('receipt');receipt.innerHTML=`<svg class="receipt-check" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24"/><path d="M13 24l7 7 15-16"/></svg><span class="receipt-status">สร้างใบสรุปสาธิตแล้ว</span><h2 class="success-title">ขอบคุณที่ลองเลือกอ่านกับเรา</h2><p>รหัสอ้างอิง: <strong>${orderId}</strong><br>ยังไม่ได้ส่งคำสั่งซื้อให้ร้าน และไม่มีการเรียกเก็บเงิน</p><ul class="receipt-list">${books.filter(b=>cart[b.id]).map(b=>`<li>${b.title} × ${cart[b.id]} — ${money(b.price*cart[b.id])}</li>`).join('')}</ul><p>ยอดสินค้า ${money(t.subtotal)} · ค่าจัดส่ง ${money(t.shipping)}<br><strong>ยอดรวมสาธิต ${money(t.total)}</strong></p><p>ผู้รับ: ${escapeText(data.get('customer'))}<br>โทรศัพท์: ${escapeText(data.get('phone'))}<br>วิธีรับ: ${data.get('delivery')==='shipping'?'จัดส่ง (สาธิต)':'รับที่ร้าน (ยังไม่ระบุที่ตั้ง)'}</p>${data.get('delivery')==='shipping'?`<p>ที่อยู่: ${escapeText(data.get('address'))}</p>`:''}${data.get('note')?`<p>หมายเหตุ: ${escapeText(data.get('note'))}</p>`:''}<p class="summary-note">ใบสรุปนี้ไม่ใช่หลักฐานการชำระเงินและจะหายเมื่อรีเฟรชหน้า สามารถพิมพ์หรือบันทึกเป็น PDF ได้</p><div class="actions no-print"><button class="btn orange" type="button" id="print-receipt">พิมพ์ / บันทึก PDF</button><a href="#catalog">กลับไปหน้าร้าน</a></div>`;document.getElementById('checkout-content').hidden=true;receipt.hidden=false;document.getElementById('order-heading').textContent='สรุปคำสั่งซื้อสาธิต';document.getElementById('print-receipt').addEventListener('click',()=>window.print());cart={};saveCart();form.reset();document.getElementById('address-field').hidden=false;document.getElementById('address').required=true;window.scrollTo(0,0);document.getElementById('order-heading').focus({preventScroll:true})});
 renderBooks();saveCart();route();
+
+
+// Motion is an enhancement: content remains visible without these APIs.
+function motionAllowed(){return typeof window.matchMedia==='function'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches}
+function softAnimate(element,frames,options){if(!element||!motionAllowed()||typeof element.animate!=='function')return;element.getAnimations().forEach(animation=>animation.cancel());return element.animate(frames,options)}
+function pulseCart(button){softAnimate(document.getElementById('cart-count'),[{transform:'scale(1)'},{transform:'scale(1.2)',offset:.45},{transform:'scale(1)'}],{duration:320,easing:'ease-out'});softAnimate(button,[{transform:'scale(1)'},{transform:'scale(.97)',offset:.35},{transform:'scale(1)'}],{duration:230,easing:'ease-out'})}
+function initQuietMotion(){
+ if(typeof window.matchMedia!=='function')return;
+ const preference=window.matchMedia('(prefers-reduced-motion: reduce)');
+ const seen=new WeakSet();
+ let observer;
+ if('IntersectionObserver' in window){
+ observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting)return;observer.unobserve(entry.target);if(entry.target.contains(document.activeElement))return;softAnimate(entry.target,[{opacity:0,translate:'0 14px'},{opacity:1,translate:'0 0'}],{duration:520,delay:Number(entry.target.dataset.motionDelay||0),easing:'cubic-bezier(.22,1,.36,1)'});})},{threshold:.08});
+ }
+ function observe(elements){if(!observer||preference.matches)return;elements.forEach((element,index)=>{if(seen.has(element))return;seen.add(element);element.dataset.motionDelay=element.classList.contains('book-card')?String((index%3)*45):'0';observer.observe(element)})}
+ observe(document.querySelectorAll('.section-head,.category,.finder,.quote,.about-copy,.persona,.step,.service-grid,.contact-info,.book-card'));
+ if('MutationObserver' in window){new MutationObserver(()=>observe(document.querySelectorAll('.book-card'))).observe(document.getElementById('book-grid'),{childList:true});}
+ document.addEventListener('focusin',event=>{let element=event.target;while(element&&element!==document.body){if(observer)observer.unobserve(element);if(typeof element.getAnimations==='function')element.getAnimations().forEach(animation=>animation.cancel());element=element.parentElement}});
+ if(preference.addEventListener)preference.addEventListener('change',()=>{if(preference.matches){if(observer)observer.disconnect();if(typeof document.getAnimations==='function')document.getAnimations().forEach(animation=>animation.cancel())}});
+ window.addEventListener('hashchange',()=>{if(location.hash==='#order')softAnimate(document.getElementById('checkout-content'),[{opacity:0,translate:'0 8px'},{opacity:1,translate:'0 0'}],{duration:340,easing:'cubic-bezier(.22,1,.36,1)'})});
+}
+initQuietMotion();
 
 </script>
 </body></html>
